@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace CoreCodeCamp.Models
 {
@@ -17,5 +18,7 @@ namespace CoreCodeCamp.Models
         public string LocationStateProvince { get; set; }
         public string LocationPostalCode { get; set; }
         public string LocationCountry { get; set; }
+
+        public ICollection<TalkModel> Talks;
     }
 }
