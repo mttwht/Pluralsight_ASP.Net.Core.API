@@ -4,6 +4,7 @@ using CoreCodeCamp.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CoreCodeCamp.Controllers
@@ -43,6 +44,22 @@ namespace CoreCodeCamp.Controllers
                     return NotFound();
 
                 return mapper.Map<CampModel>(result);
+            }
+            catch(Exception) {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Database failure");
+            }
+        }
+
+        [HttpGet("search")]
+        public async Task<ActionResult<CampModel[]>> SearchByDate(DateTime theDate, bool includeTalks=false)
+        {
+            try {
+                var result = await campRepository.GetAllCampsByEventDate(theDate, includeTalks);
+
+                if(!result.Any())
+                    return NotFound();
+
+                return mapper.Map<CampModel[]>(result);
             }
             catch(Exception) {
                 return StatusCode(StatusCodes.Status500InternalServerError, "Database failure");
