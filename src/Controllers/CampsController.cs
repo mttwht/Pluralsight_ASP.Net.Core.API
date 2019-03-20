@@ -1,14 +1,31 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CoreCodeCamp.Data;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace CoreCodeCamp.Controllers
 {
     [Route("api/[controller]")]
     public class CampsController : ControllerBase
     {
-        [HttpGet]
-        public IActionResult Get()
+        private readonly ICampRepository campRepository;
+
+        public CampsController(ICampRepository campRepository)
         {
-            return Ok(new { Moniker = "DUB2019", Name = "Dublin Code Camp" });
+            this.campRepository = campRepository;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Get()
+        {
+            try {
+                var result = await campRepository.GetAllCampsAsync();
+
+                return Ok(result);
+            }
+            catch(System.Exception) {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Database failure");
+            }
         }
     }
 }
