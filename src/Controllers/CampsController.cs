@@ -5,9 +5,10 @@ namespace CoreCodeCamp.Controllers
     [Route("api/[controller]")]
     public class CampsController : ControllerBase
     {
-        public object Get()
+        [HttpGet]
+        public IActionResult Get()
         {
-            return new { Moniker = "DUB2019", Name = "Dublin Code Camp" };
+            return Ok(new { Moniker = "DUB2019", Name = "Dublin Code Camp" });
         }
     }
 }
