@@ -3,6 +3,7 @@ using CoreCodeCamp.Data;
 using CoreCodeCamp.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading.Tasks;
 
 namespace CoreCodeCamp.Controllers
@@ -27,7 +28,23 @@ namespace CoreCodeCamp.Controllers
 
                 return mapper.Map<CampModel[]>(result);
             }
-            catch(System.Exception) {
+            catch(Exception) {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Database failure");
+            }
+        }
+
+        [HttpGet("{moniker}")]
+        public async Task<ActionResult<CampModel>> Get(string moniker)
+        {
+            try {
+                var result = await campRepository.GetCampAsync(moniker);
+
+                if(result == null)
+                    return NotFound();
+
+                return mapper.Map<CampModel>(result);
+            }
+            catch(Exception) {
                 return StatusCode(StatusCodes.Status500InternalServerError, "Database failure");
             }
         }
