@@ -78,6 +78,10 @@ namespace CoreCodeCamp.Controllers
                 if(string.IsNullOrEmpty(link))
                     return BadRequest();
 
+                var existing = await campRepository.GetCampAsync(model.Moniker);
+                if(existing != null)
+                    return BadRequest("Moniker already exists");
+
                 var camp = mapper.Map<Camp>(model);
                 campRepository.Add(camp);
                 if(await campRepository.SaveChangesAsync()) {
