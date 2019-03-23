@@ -36,12 +36,15 @@ namespace CoreCodeCamp.Controllers
             }
         }
 
-        [HttpGet]
-        [Route("{id:int}")]
+        [HttpGet("{id:int}")]
         public async Task<ActionResult<TalkModel>> Get(string moniker, int id)
         {
             try {
                 var talk = await campRepository.GetTalkByMonikerAsync(moniker, id, true);
+
+                if(talk == null)
+                    return NotFound($"Talk {id} not found");
+
                 return mapper.Map<TalkModel>(talk);
             }
             catch(Exception) {
@@ -58,7 +61,7 @@ namespace CoreCodeCamp.Controllers
                 var talk = mapper.Map<Talk>(model);
 
                 if(camp == null)
-                    return BadRequest($"Camp {moniker} not found");
+                    return NotFound($"Camp {moniker} not found");
                 talk.Camp = camp;
 
                 if(model.Speaker == null)
@@ -87,15 +90,14 @@ namespace CoreCodeCamp.Controllers
         }
 
 
-        [HttpPut]
-        [Route("{id:int}")]
+        [HttpPut("{id:int}")]
         public async Task<ActionResult<TalkModel>> Put(string moniker, int id, TalkModel model)
         {
             try {
                 var talk = await campRepository.GetTalkByMonikerAsync(moniker, id, true);
 
                 if(talk == null)
-                    return BadRequest($"Talk {id} not found");
+                    return NotFound($"Talk {id} not found");
 
                 mapper.Map(model, talk);
 
@@ -110,6 +112,29 @@ namespace CoreCodeCamp.Controllers
                 }
                 else {
                     return BadRequest("Could not update talk");
+                }
+            }
+            catch(Exception) {
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> Delete(string moniker, int id)
+        {
+            try {
+                var talk = await campRepository.GetTalkByMonikerAsync(moniker, id);
+
+                if(talk == null)
+                    return NotFound($"Talk {id} not found");
+
+                campRepository.Delete(talk);
+
+                if(await campRepository.SaveChangesAsync()) {
+                    return Ok();
+                }
+                else {
+                    return BadRequest($"Could not delete talk {id}");
                 }
             }
             catch(Exception) {
