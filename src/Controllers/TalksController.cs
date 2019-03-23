@@ -28,7 +28,7 @@ namespace CoreCodeCamp.Controllers
         public async Task<ActionResult<TalkModel[]>> Get(string moniker)
         {
             try {
-                var talks = await campRepository.GetTalksByMonikerAsync(moniker);
+                var talks = await campRepository.GetTalksByMonikerAsync(moniker, true);
                 return mapper.Map<TalkModel[]>(talks);
             }
             catch(Exception) {
@@ -41,8 +41,45 @@ namespace CoreCodeCamp.Controllers
         public async Task<ActionResult<TalkModel>> Get(string moniker, int id)
         {
             try {
-                var talk = await campRepository.GetTalkByMonikerAsync(moniker, id);
+                var talk = await campRepository.GetTalkByMonikerAsync(moniker, id, true);
                 return mapper.Map<TalkModel>(talk);
+            }
+            catch(Exception) {
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<TalkModel>> Post(string moniker, TalkModel model)
+        {
+            try {
+                var camp = await campRepository.GetCampAsync(moniker);
+
+                var talk = mapper.Map<Talk>(model);
+
+                if(camp == null)
+                    return BadRequest($"Camp {moniker} not found");
+                talk.Camp = camp;
+
+                if(model.Speaker == null)
+                    return BadRequest("Speaker is required");
+                var speaker = await campRepository.GetSpeakerAsync(model.Speaker.SpeakerId);
+                if(speaker == null)
+                    return BadRequest($"Speaker {model.Speaker.SpeakerId} not found");
+                talk.Speaker = speaker;
+
+                campRepository.Add(talk);
+
+                if(await campRepository.SaveChangesAsync()) {
+                    var link = linkGenerator.GetPathByAction(HttpContext,
+                        nameof(Get),
+                        values: new { moniker, id = talk.TalkId });
+
+                    return Created(link, mapper.Map<TalkModel>(talk));
+                }
+                else {
+                    return BadRequest("Could not save talk");
+                }
             }
             catch(Exception) {
                 return StatusCode(StatusCodes.Status500InternalServerError);
