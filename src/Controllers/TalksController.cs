@@ -85,5 +85,36 @@ namespace CoreCodeCamp.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
+
+
+        [HttpPut]
+        [Route("{id:int}")]
+        public async Task<ActionResult<TalkModel>> Put(string moniker, int id, TalkModel model)
+        {
+            try {
+                var talk = await campRepository.GetTalkByMonikerAsync(moniker, id, true);
+
+                if(talk == null)
+                    return BadRequest($"Talk {id} not found");
+
+                mapper.Map(model, talk);
+
+                if(model.Speaker != null) {
+                    var speaker = await campRepository.GetSpeakerAsync(model.Speaker.SpeakerId);
+                    if(speaker != null)
+                        talk.Speaker = speaker;
+                }
+
+                if(await campRepository.SaveChangesAsync()) {
+                    return mapper.Map<TalkModel>(talk);
+                }
+                else {
+                    return BadRequest("Could not update talk");
+                }
+            }
+            catch(Exception) {
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
     }
 }
