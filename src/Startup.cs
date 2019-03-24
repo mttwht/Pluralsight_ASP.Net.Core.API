@@ -22,8 +22,11 @@ namespace CoreCodeCamp
                 options.DefaultApiVersion = new ApiVersion(1, 1);
                 options.ReportApiVersions = true;
                 //options.ApiVersionReader = new QueryStringApiVersionReader(); // this is the default behaviour
-                //options.ApiVersionReader = new QueryStringApiVersionReader("version"); // change query string parameter
-                options.ApiVersionReader = new HeaderApiVersionReader("X-Version"); // use Headers for version
+                // // change query string parameter
+                options.ApiVersionReader = ApiVersionReader.Combine(
+                    new QueryStringApiVersionReader("v", "version"),
+                    new HeaderApiVersionReader("X-Version")
+                );
             });
 
             services.AddMvc()
